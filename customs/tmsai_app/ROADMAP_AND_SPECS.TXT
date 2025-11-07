@@ -1,0 +1,332 @@
+Єдиний консолідований документ для модуля tmsai (Odoo 19). Він складається з двох частин:
+    1. Фінальний roadmap.md: повний перелік моделей і полів (без Python-коду), статуси, зв’язки, правила і вимоги.
+    2. Остаточні специфікації безпеки (ACL + Record Rules + CSV-матриця доступів), меню та в’юх (ідентифікатори вікон/в’ю, склад полів у search/tree/form/kanban/gantt).
+Частина A. Roadmap.md — моделі, поля, статуси, зв’язки
+Огляд і принципи
+    • Один модуль: tmsai. Префікс моделей: tmsai.*
+    • OTR/DTR об’єднані в Transport Request (TR). TR — лінійна таблиця: 1 запис = 1 перевізна позиція.
+    • Джерела TR: Sales Order (SO), Purchase Order (PO), Internal Movement (stock.picking/stock.move).
+    • Ключовий процес: TR → FU → FO/FB → FSD.
+    • Master Data окремо: Carriers, Units, Resources (зі складом з Units), Geo Zones / Lanes, Service Levels, Agreements/Rates, Accessorials, Fuel.
+    • Інтеграції: res.partner (через tmsai.carrier), fleet.vehicle (через tmsai.resource), sale/purchase/stock/account.
+Залежності і технічні деталі
+    • depends: base, mail, sale, purchase, stock, account, uom, fleet, contacts
+    • опційно: web, calendar, base_geolocalize, delivery, l10n_*
+    • Послідовності: tmsai.tr, tmsai.fu, tmsai.fo, tmsai.fb, tmsai.fsd, tmsai.tender
+    • Час/дати — зберігати в UTC, відображати локально
+A1) Master Data (довідники)
+    1. tmsai.mode — Режим перевезення
+    • code, name, active
+    2. tmsai.service.level — Рівень сервісу
+    • name, code, description, kpi_ontime_pct, kpi_lead_time_hours, active
+    3. tmsai.geo.zone — Геозона
+    • name, type(country/state/city/zip/point/radius), country_id, state_id, city, zip, lat, lng, radius_km, active
+    4. tmsai.lane — Напрямок (Lane)
+    • name, from_zone_id, to_zone_id, mode_id, default_unit_id, sla_lead_time_hours, active
+    5. tmsai.carrier — Перевізник (зв’язок із res.partner)
+    • name, code, partner_id (обов’язково), company_id, carrier_type(own_fleet|subcontractor|both), mode_ids, service_level_ids, rating, blacklisted, notes, active
+    6. tmsai.carrier.document — Документи перевізника
+    • carrier_id, doc_type(insurance|license|permit|contract|other), number, date_issue, date_expiry, attachment_id, state(valid|expiring|expired), notes
+    7. tmsai.carrier.lane (опційно) — Покриття напрямків перевізником
+    • carrier_id, from_zone_id, to_zone_id, mode_id, unit_id(опц.), lead_time_days, min_weight, max_weight, min_volume, max_volume, active
+    8. tmsai.unit — Одиниця (ємність/типорозмір: контейнер/причіп/вагон/ULD/…)
+    • name, code(20GP/40HC/13.6m Trailer…), mode_id, category(container|trailer|semi_trailer|wagon|uld|body|tank|platform|other), size_label, tare_weight, capacity_weight, capacity_volume, pallets, length, width, height, is_reefer, is_hazmat, door_type, active
+    9. tmsai.resource — Ресурс (композиційний актив)
+    • name, code, mode_id, category(tractor|truck|trailer_set|train|wagon_set|chassis|container_set|other), owner_type(company|carrier), carrier_id(опц.), partner_owner_id(related), vehicle_id(опц.), unit_line_ids, total_capacity_weight(computed), total_capacity_volume(computed), total_pallets(computed), active
+    10. tmsai.resource.unit — Лінії ресурсу (ресурс ↔ одиниця)
+    • resource_id, unit_id, quantity, sequence, notes
+    11. tmsai.freight.agreement — Тарифна угода
+    • name, company_id, role(carrier_cost|customer_price), carrier_id(для carrier_cost), customer_id(для customer_price), date_from, date_to, currency_id, mode_id, service_level_id(опц.), default_unit_id(опц.), fuel_policy_id(опц.), terms_text, active
+    12. tmsai.freight.rate — Ставка тарифу
+    • agreement_id, lane_id(опц.), from_zone_id(опц.), to_zone_id(опц.), mode_id, unit_id(опц.), price_method(flat|per_km|per_kg|per_m3|per_pallet|tiered), base_price, volumetric_factor(опц.), min_charge(опц.), min_weight/max_weight(опц.), min_volume/max_volume(опц.), min_pallets/max_pallets(опц.), lead_time_days(опц.), taxes_id, priority, active
+    13. tmsai.accessorial — Додаткові нарахування
+    • name, code, product_id, charge_type(fixed|per_hour|per_km|per_stop|per_package|waiting_time|detention|customs|liftgate|toll|other), price, min_charge, free_time_min, conditions_json, active
+    14. tmsai.fuel.index — Паливний індекс
+    • region, date, index_value, currency_id, notes
+    15. tmsai.fuel.policy — Політика паливної надбавки
+    • name, type(percent_of_linehaul|band_table), percent(для percent_of_linehaul), band_line_ids(для band_table), active
+    16. tmsai.fuel.policy.band — Смуги індексу
+    • policy_id, from_index, to_index, percent
+A2) Операційні моделі
+    17. tmsai.transport.request — TR (уніфікований OTR/DTR; лінійний)
+    • Ідентифікація: name(seq), company_id, state(draft|confirmed|planned|in_transit|done|canceled)
+    • Джерело: transport_category(outbound|inbound|internal), source_model(SO|PO|stock.picking), source_ref, source_line_ref(SO line|PO line|stock.move), bill_to_partner_id(опц.)
+    • Сторони/локації: partner_from_id, partner_to_id, location_from_id, location_to_id
+    • Маршрут/класифікація: lane_from_zone_id, lane_to_zone_id, mode_id, service_level_id, requested_unit_id(опц.), incoterm_id(опц.)
+    • Дати: planned_pickup, planned_delivery, window_pickup_from/to(опц.), window_delivery_from/to(опц.)
+    • Вантаж: product_id, description, qty, uom_id, weight, volume, packages, package_type, is_hazardous, temperature_req
+    • Зв’язки: fu_id, split_from_id
+    • Примітки: notes, chatter
+    18. tmsai.freight.unit — FU
+    • name(seq), company_id, tr_ids(one2many), mode_id, planned_unit_id(опц.), weight_total(computed), volume_total(computed), packages(computed), consolidation_key(computed), state(draft|planned|assigned|in_transit|delivered|canceled), notes
+    19. tmsai.freight.order — FO
+    • Основні: name(seq), company_id, state(draft|tendering|confirmed|dispatched|in_transit|delivered|closed|canceled), execution_mode(own_fleet|subcontracted), mode_id, service_level_id, currency_id, planned_departure, planned_arrival, lane_id(опц.)
+    • Перевізник: carrier_id(tmsai.carrier), carrier_partner_id(related)
+    • Вантаж: fu_ids(m2m)
+    • Ресурси: resource_line_ids(one2many), capacity_weight/volume/pallets(computed totals)
+    • Маршрут: route_leg_ids(one2many)
+    • Фінанси: cost_line_ids, revenue_line_ids, totals_cost(computed), totals_revenue(computed), margin(computed)
+    • Логи: notes, chatter
+    20. tmsai.fo.resource — Ресурсна лінія FO
+    • fo_id, resource_id, vehicle_id(опц.), driver_id(опц.), role(tractor|trailer|wagon|other), unit_line_ids(one2many), capacity_weight/volume/pallets(computed), planned_from(опц.), planned_to(опц.), state(planned|assigned|in_use|released)
+    21. tmsai.fo.resource.unit — Одиниці в ресурсі FO
+    • fo_resource_id, unit_id, quantity
+    22. tmsai.freight.booking — FB
+    • name(seq), company_id, state(draft|quoted|confirmed|in_transit|delivered|closed|canceled), mode_id, service_level_id, carrier_id, fu_ids, lane_id(опц.), departure_window_from/to, arrival_window_from/to, resource_hint_unit_id(опц.), cost_line_ids, revenue_line_ids, currency_id, tender_id(опц.), notes, chatter
+    23. tmsai.route.leg — Нога маршруту
+    • fo_id, sequence, from_partner_id, to_partner_id, from_location_id, to_location_id, planned_departure, planned_arrival, distance_km, duration_min, mode_id, carrier_id(опц.), notes
+    24. tmsai.tender — Тендеринг
+    • name, company_id, fo_id(опц.)/fb_id(опц.), invited_carrier_ids, awarding_rule(lowest_cost|best_eta|scorecard|manual), deadline, state(draft|sent|quoted|awarded|lost|canceled), quote_line_ids, awarded_carrier_id, notes
+    25. tmsai.tender.quote — Пропозиції у тендері
+    • tender_id, carrier_id, price_linehaul, currency_id, accessorial_total, fuel_percent, eta_hours, valid_until, selected, attachments, notes
+    26. tmsai.freight.settlement — FSD
+    • name(seq), company_id, fo_id(опц.), fb_id(опц.), currency_id, cost_line_ids, revenue_line_ids, totals_cost(computed), totals_revenue(computed), margin(computed), vendor_bill_id, customer_invoice_id, purchase_order_id(опц.), state(draft|approved|billed_vendor|billed_customer|paid), notes, chatter
+    27. tmsai.cost.line — Витрати
+    • name, fsd_id(опц.), fo_id(опц.), fb_id(опц.), product_id, quantity, price_unit, currency_id, taxes_id, amount_subtotal(computed), amount_total(computed), agreement_id(опц.), rate_id(опц.), accessorial_id(опц.), is_fuel_surcharge(bool), calc_json, analytic_account_id(опц.), cost_center_id(опц.)
+    28. tmsai.revenue.line — Доходи
+    • name, fsd_id(опц.), fo_id(опц.), fb_id(опц.), product_id, quantity, price_unit, currency_id, taxes_id, amount_subtotal(computed), amount_total(computed), agreement_id(опц.), rate_id(опц.), accessorial_id(опц.), is_fuel_surcharge(bool), calc_json, analytic_account_id(опц.)
+    29. tmsai.tracking.event — Трекінг
+    • document_type(TR|FU|FO|FB), document_id(посилання техн.), event_type(pickup|departure|checkpoint|arrival|pod_received|other), timestamp, gps_lat, gps_lng, source(mobile|api|manual), description, attachment_ids
+A3) Стани (state machines)
+    • TR: draft → confirmed → planned → in_transit → done → canceled
+    • FU: draft → planned → assigned → in_transit → delivered → canceled
+    • FO: draft → tendering → confirmed → dispatched → in_transit → delivered → closed → canceled
+    • FB: draft → quoted → confirmed → in_transit → delivered → closed → canceled
+    • FSD: draft → approved → billed_vendor/billed_customer → paid
+A4) Основні бізнес-правила
+    • Консолідація TR у FU: групування за mode/lane/service_level/requested_unit/date windows/ADR; bin packing за weight/volume/pallets; split TR при перевищенні.
+    • Призначення FU у FO: сума weight/volume/pallets FU у FO ≤ сумарна місткість fo.resource.unit (політика exceed_capacity: block|warn|allow).
+    • Калькуляція ставок:
+        ◦ price_methods: flat, per_km, per_kg (chargeable=max(gross, volume*volumetric_factor)), per_m3, per_pallet, tiered.
+        ◦ Пошук rate: за agreement(role), lane або from/to zone, mode, unit (якщо вказано), priority, валідність дат.
+        ◦ Додаються accessorials і fuel surcharge за fuel.policy/indеx.
+    • FSD: один FSD на FO/FB у closed (partial — дозволено політикою створення).
+    • Carrier blacklisted: заборона award/confirm у тендері/FO/FB.
+A5) Інтеграції та автоматизація
+    • Авто-TR на підтвердженні SO/PO/Internal (джерело ліній — stock.move або SO/PO line за налаштуванням).
+    • Cron: tr_autobuild_fu, sync_status зі stock.picking, reprice (fuel/index).
+    • Distance service (provider: none|osrm|ors|google) — абстрагований сервіс.
+A6) Індекси та обмеження
+    • unique(name) на TR/FU/FO/FB/FSD/Tender
+    • Agreement: date_from ≤ date_to; (role, контрагент, mode) — вирішується пріоритетом rate.priority
+    • Індекси: state, planned_* дати, partner_from/to, mode_id, lane_*, carrier_id
+    • Performance: batch create/write; мінімальні depends для computed полів
+Частина B. Безпека (ACL), меню та в’юхи
+B1) Групи доступу
+    • tmsai.group_user — операційний користувач (TR/FU створення, читання FO/FB/FSD/masterdata)
+    • tmsai.group_planner — планувальник (повні права TR/FU/FO/FB/маршрути/ресурси, тендер)
+    • tmsai.group_billing — білінг (повні права FSD/Cost/Revenue, читання решти)
+    • tmsai.group_masterdata_manager — менеджер довідників (Carriers/Units/Resources/Geo/Lanes/Service Levels/Agreements/Rates/Accessorial/Fuel)
+    • tmsai.group_manager — менеджер (усі права)
+B2) Record Rules (загальний принцип)
+    • Для операційних моделей (TR, FU, FO, FB, FO Resource/Unit, Route Leg, Tender/Quote, FSD, Cost/Revenue, Tracking):
+        ◦ Domain: ['|', ('company_id','=',False), ('company_id','in', user.company_ids.ids)]
+        ◦ Групи: user, planner, billing (manager — без обмежень або наслідує)
+    • Для master-data з company_id (Carrier, Freight Agreement): той самий multi-company domain.
+    • Для довідників без company_id (Unit, Resource, Geo Zone, Lane, Service Level, Rate, Accessorial, Fuel.*) — читання всім tmsai-групам; запис — лише masterdata_manager (через ACL).
+B3) ACL матриця (security/ir.model.access.csv)
+Фрагмент CSV (повний набір ідентичний описаному; без Python-коду):
+text
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+# TR
+tmsai_access_tr_user,TR user,model_tmsai_transport_request,tmsai.group_user,1,1,1,0
+tmsai_access_tr_planner,TR planner,model_tmsai_transport_request,tmsai.group_planner,1,1,1,1
+tmsai_access_tr_billing,TR billing RO,model_tmsai_transport_request,tmsai.group_billing,1,0,0,0
+tmsai_access_tr_manager,TR manager,model_tmsai_transport_request,tmsai.group_manager,1,1,1,1
+# FU
+tmsai_access_fu_user,FU user,model_tmsai_freight_unit,tmsai.group_user,1,1,1,0
+tmsai_access_fu_planner,FU planner,model_tmsai_freight_unit,tmsai.group_planner,1,1,1,1
+tmsai_access_fu_billing,FU billing RO,model_tmsai_freight_unit,tmsai.group_billing,1,0,0,0
+tmsai_access_fu_manager,FU manager,model_tmsai_freight_unit,tmsai.group_manager,1,1,1,1
+# FO
+tmsai_access_fo_user,FO user RO,model_tmsai_freight_order,tmsai.group_user,1,0,0,0
+tmsai_access_fo_planner,FO planner,model_tmsai_freight_order,tmsai.group_planner,1,1,1,1
+tmsai_access_fo_billing,FO billing RO,model_tmsai_freight_order,tmsai.group_billing,1,0,0,0
+tmsai_access_fo_manager,FO manager,model_tmsai_freight_order,tmsai.group_manager,1,1,1,1
+# FO Resource / Unit
+tmsai_access_fo_resource_user,FO Resource user RO,model_tmsai_fo_resource,tmsai.group_user,1,0,0,0
+tmsai_access_fo_resource_planner,FO Resource planner,model_tmsai_fo_resource,tmsai.group_planner,1,1,1,1
+tmsai_access_fo_resource_manager,FO Resource manager,model_tmsai_fo_resource,tmsai.group_manager,1,1,1,1
+tmsai_access_fo_resource_unit_user,FO Resource Unit user RO,model_tmsai_fo_resource_unit,tmsai.group_user,1,0,0,0
+tmsai_access_fo_resource_unit_planner,FO Resource Unit planner,model_tmsai_fo_resource_unit,tmsai.group_planner,1,1,1,1
+tmsai_access_fo_resource_unit_manager,FO Resource Unit manager,model_tmsai_fo_resource_unit,tmsai.group_manager,1,1,1,1
+# Route Leg
+tmsai_access_route_leg_user,Route Leg user RO,model_tmsai_route_leg,tmsai.group_user,1,0,0,0
+tmsai_access_route_leg_planner,Route Leg planner,model_tmsai_route_leg,tmsai.group_planner,1,1,1,1
+tmsai_access_route_leg_manager,Route Leg manager,model_tmsai_route_leg,tmsai.group_manager,1,1,1,1
+# FB
+tmsai_access_fb_user,FB user RO,model_tmsai_freight_booking,tmsai.group_user,1,0,0,0
+tmsai_access_fb_planner,FB planner,model_tmsai_freight_booking,tmsai.group_planner,1,1,1,1
+tmsai_access_fb_billing,FB billing RO,model_tmsai_freight_booking,tmsai.group_billing,1,0,0,0
+tmsai_access_fb_manager,FB manager,model_tmsai_freight_booking,tmsai.group_manager,1,1,1,1
+# Tender / Quote
+tmsai_access_tender_user,Tender user RO,model_tmsai_tender,tmsai.group_user,1,0,0,0
+tmsai_access_tender_planner,Tender planner,model_tmsai_tender,tmsai.group_planner,1,1,1,1
+tmsai_access_tender_manager,Tender manager,model_tmsai_tender,tmsai.group_manager,1,1,1,1
+tmsai_access_tender_quote_user,Tender Quote user RO,model_tmsai_tender_quote,tmsai.group_user,1,0,0,0
+tmsai_access_tender_quote_planner,Tender Quote planner,model_tmsai_tender_quote,tmsai.group_planner,1,1,1,1
+tmsai_access_tender_quote_manager,Tender Quote manager,model_tmsai_tender_quote,tmsai.group_manager,1,1,1,1
+# FSD / Lines
+tmsai_access_fsd_user,FSD user RO,model_tmsai_freight_settlement,tmsai.group_user,1,0,0,0
+tmsai_access_fsd_billing,FSD billing,model_tmsai_freight_settlement,tmsai.group_billing,1,1,1,1
+tmsai_access_fsd_manager,FSD manager,model_tmsai_freight_settlement,tmsai.group_manager,1,1,1,1
+tmsai_access_cost_user,Cost line user RO,model_tmsai_cost_line,tmsai.group_user,1,0,0,0
+tmsai_access_cost_billing,Cost line billing,model_tmsai_cost_line,tmsai.group_billing,1,1,1,1
+tmsai_access_cost_manager,Cost line manager,model_tmsai_cost_line,tmsai.group_manager,1,1,1,1
+tmsai_access_revenue_user,Revenue line user RO,model_tmsai_revenue_line,tmsai.group_user,1,0,0,0
+tmsai_access_revenue_billing,Revenue line billing,model_tmsai_revenue_line,tmsai.group_billing,1,1,1,1
+tmsai_access_revenue_manager,Revenue line manager,model_tmsai_revenue_line,tmsai.group_manager,1,1,1,1
+# Tracking
+tmsai_access_tracking_user,Tracking user,model_tmsai_tracking_event,tmsai.group_user,1,1,1,0
+tmsai_access_tracking_planner,Tracking planner,model_tmsai_tracking_event,tmsai.group_planner,1,1,1,1
+tmsai_access_tracking_manager,Tracking manager,model_tmsai_tracking_event,tmsai.group_manager,1,1,1,1
+# Master Data: Carrier / Docs / Lanes
+tmsai_access_carrier_user,Carrier user RO,model_tmsai_carrier,tmsai.group_user,1,0,0,0
+tmsai_access_carrier_planner,Carrier planner RO,model_tmsai_carrier,tmsai.group_planner,1,0,0,0
+tmsai_access_carrier_billing,Carrier billing RO,model_tmsai_carrier,tmsai.group_billing,1,0,0,0
+tmsai_access_carrier_md,Carrier MD,model_tmsai_carrier,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_carrier_manager,Carrier manager,model_tmsai_carrier,tmsai.group_manager,1,1,1,1
+tmsai_access_carrier_doc_md,Carrier Doc MD,model_tmsai_carrier_document,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_carrier_doc_manager,Carrier Doc manager,model_tmsai_carrier_document,tmsai.group_manager,1,1,1,1
+tmsai_access_carrier_lane_md,Carrier Lane MD,model_tmsai_carrier_lane,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_carrier_lane_manager,Carrier Lane manager,model_tmsai_carrier_lane,tmsai.group_manager,1,1,1,1
+# Master Data: Unit / Resource / Resource Unit
+tmsai_access_unit_user,Unit user RO,model_tmsai_unit,tmsai.group_user,1,0,0,0
+tmsai_access_unit_md,Unit MD,model_tmsai_unit,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_unit_manager,Unit manager,model_tmsai_unit,tmsai.group_manager,1,1,1,1
+tmsai_access_resource_user,Resource user RO,model_tmsai_resource,tmsai.group_user,1,0,0,0
+tmsai_access_resource_planner,Resource planner RO,model_tmsai_resource,tmsai.group_planner,1,0,0,0
+tmsai_access_resource_md,Resource MD,model_tmsai_resource,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_resource_manager,Resource manager,model_tmsai_resource,tmsai.group_manager,1,1,1,1
+tmsai_access_resource_unit_md,Resource Unit MD,model_tmsai_resource_unit,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_resource_unit_manager,Resource Unit manager,model_tmsai_resource_unit,tmsai.group_manager,1,1,1,1
+# Master Data: Geo Zone / Lane / Service Level
+tmsai_access_geo_zone_user,Geo Zone user RO,model_tmsai_geo_zone,tmsai.group_user,1,0,0,0
+tmsai_access_geo_zone_md,Geo Zone MD,model_tmsai_geo_zone,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_geo_zone_manager,Geo Zone manager,model_tmsai_geo_zone,tmsai.group_manager,1,1,1,1
+tmsai_access_lane_user,Lane user RO,model_tmsai_lane,tmsai.group_user,1,0,0,0
+tmsai_access_lane_md,Lane MD,model_tmsai_lane,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_lane_manager,Lane manager,model_tmsai_lane,tmsai.group_manager,1,1,1,1
+tmsai_access_service_level_user,Service Level user RO,model_tmsai_service_level,tmsai.group_user,1,0,0,0
+tmsai_access_service_level_md,Service Level MD,model_tmsai_service_level,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_service_level_manager,Service Level manager,model_tmsai_service_level,tmsai.group_manager,1,1,1,1
+# Master Data: Agreements / Rates
+tmsai_access_agreement_user,Agreement user RO,model_tmsai_freight_agreement,tmsai.group_user,1,0,0,0
+tmsai_access_agreement_planner,Agreement planner RO,model_tmsai_freight_agreement,tmsai.group_planner,1,0,0,0
+tmsai_access_agreement_billing,Agreement billing RO,model_tmsai_freight_agreement,tmsai.group_billing,1,0,0,0
+tmsai_access_agreement_md,Agreement MD,model_tmsai_freight_agreement,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_agreement_manager,Agreement manager,model_tmsai_freight_agreement,tmsai.group_manager,1,1,1,1
+tmsai_access_rate_user,Rate user RO,model_tmsai_freight_rate,tmsai.group_user,1,0,0,0
+tmsai_access_rate_md,Rate MD,model_tmsai_freight_rate,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_rate_manager,Rate manager,model_tmsai_freight_rate,tmsai.group_manager,1,1,1,1
+# Master Data: Accessorial / Fuel
+tmsai_access_accessorial_user,Accessorial user RO,model_tmsai_accessorial,tmsai.group_user,1,0,0,0
+tmsai_access_accessorial_md,Accessorial MD,model_tmsai_accessorial,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_accessorial_manager,Accessorial manager,model_tmsai_accessorial,tmsai.group_manager,1,1,1,1
+tmsai_access_fuel_index_user,Fuel Index user RO,model_tmsai_fuel_index,tmsai.group_user,1,0,0,0
+tmsai_access_fuel_index_md,Fuel Index MD,model_tmsai_fuel_index,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_fuel_index_manager,Fuel Index manager,model_tmsai_fuel_index,tmsai.group_manager,1,1,1,1
+tmsai_access_fuel_policy_user,Fuel Policy user RO,model_tmsai_fuel_policy,tmsai.group_user,1,0,0,0
+tmsai_access_fuel_policy_md,Fuel Policy MD,model_tmsai_fuel_policy,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_fuel_policy_manager,Fuel Policy manager,model_tmsai_fuel_policy,tmsai.group_manager,1,1,1,1
+tmsai_access_fuel_policy_band_md,Fuel Policy Band MD,model_tmsai_fuel_policy_band,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_fuel_policy_band_manager,Fuel Policy Band manager,model_tmsai_fuel_policy_band,tmsai.group_manager,1,1,1,1
+# Mode
+tmsai_access_mode_user,Mode user RO,model_tmsai_mode,tmsai.group_user,1,0,0,0
+tmsai_access_mode_md,Mode MD,model_tmsai_mode,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_mode_manager,Mode manager,model_tmsai_mode,tmsai.group_manager,1,1,1,1
+B4) Меню та Window Actions (views/menu.xml)
+    • TMS (menu_tmsai_root)
+        ◦ Dashboard (menu_tmsai_dashboard) → action_tmsai_dashboard (опц.)
+        ◦ Operations (menu_tmsai_operations)
+            ▪ Transport Requests → action_tmsai_tr
+            ▪ Freight Units → action_tmsai_fu
+            ▪ Freight Orders → action_tmsai_fo
+            ▪ Freight Bookings → action_tmsai_fb
+            ▪ Tenders → action_tmsai_tenders
+            ▪ Settlement (FSD) → action_tmsai_fsd
+            ▪ Tracking Events → action_tmsai_tracking
+        ◦ Configuration (menu_tmsai_config)
+            ▪ Carriers → action_tmsai_carriers
+            ▪ Carrier Documents → action_tmsai_carrier_docs
+            ▪ Carrier Lanes → action_tmsai_carrier_lanes
+            ▪ Units → action_tmsai_units
+            ▪ Resources → action_tmsai_resources
+            ▪ Service Levels → action_tmsai_service_levels
+            ▪ Geo Zones → action_tmsai_geo_zones
+            ▪ Lanes → action_tmsai_lanes
+            ▪ Agreements → action_tmsai_agreements
+            ▪ Rates → action_tmsai_rates
+            ▪ Accessorials → action_tmsai_accessorials
+            ▪ Fuel Index → action_tmsai_fuel_index
+            ▪ Fuel Policies → action_tmsai_fuel_policies
+            ▪ Settings → action_res_config_settings_tmsai
+B5) Ідентифікатори в’ю/вікон і склад екранних форм
+Transport Request (tmsai.transport.request)
+    • Actions/Views: action_tmsai_tr; view_tmsai_tr_search, view_tmsai_tr_tree, view_tmsai_tr_form, view_tmsai_tr_kanban(опц.)
+    • Search: state, transport_category, mode_id, requested_unit_id, is_hazardous, planned_pickup/delivery ranges; Group By: state, transport_category, mode_id, partner_from_id, partner_to_id, lane_from_zone_id, lane_to_zone_id
+    • Tree: name, transport_category, source_model, source_ref, partner_from_id, partner_to_id, planned_pickup, planned_delivery, mode_id, requested_unit_id, product_id, qty, uom_id, weight, volume, fu_id, state
+    • Form (вкладки): General; Parties & Locations; Planning; Cargo; Links; Chatter
+    • Кнопки: Confirm, Plan (build FU), In Transit, Done, Cancel; Smart: Open FU, Open Source
+Freight Unit (tmsai.freight.unit)
+    • Actions/Views: action_tmsai_fu; view_tmsai_fu_search, view_tmsai_fu_kanban, view_tmsai_fu_tree, view_tmsai_fu_form
+    • Kanban: name, state, weight_total, volume_total, planned_unit_id, TR count
+    • Tree: name, mode_id, planned_unit_id, weight_total, volume_total, packages, state
+    • Form: Summary; Transport Requests (one2many readonly + “Add TR” wizard); Notes/Chatter
+    • Кнопки: Plan, Assign, In Transit, Delivered, Cancel; Smart: TRs, FO/FB
+Freight Order (tmsai.freight.order)
+    • Actions/Views: action_tmsai_fo; view_tmsai_fo_search, view_tmsai_fo_tree, view_tmsai_fo_form, view_tmsai_fo_gantt, view_tmsai_fo_calendar
+    • Search: state, execution_mode, carrier_id, mode_id, planned_departure/arrival ranges; Group By: state, carrier_id, mode_id
+    • Tree: name, execution_mode, carrier_id, planned_departure, planned_arrival, mode_id, service_level_id, fu_count, totals_cost, totals_revenue, margin, state
+    • Gantt: date_start=planned_departure, date_stop=planned_arrival, color=state
+    • Form (вкладки): General; Resources (one2many tmsai.fo.resource з unit lines); Cargo (FU m2m); Route (route_leg_ids); Financials (cost/revenue + totals); Tracking; Notes/Chatter
+    • Кнопки: Confirm, Dispatch, Start, Deliver, Close, Cancel; Smart: Tenders, Settlement, Vendor Bill, Customer Invoice, FU count
+FO Resource (tmsai.fo.resource) — inline у FO
+    • Tree inline: resource_id, vehicle_id, driver_id, role, capacity_weight, capacity_volume, pallets
+    • Form inline: ті ж + unit_line_ids (unit_id, quantity)
+Route Leg (tmsai.route.leg) — inline у FO
+    • Tree inline: sequence, from_partner/location, to_partner/location, planned_departure, planned_arrival, distance_km, duration_min, mode_id
+Freight Booking (tmsai.freight.booking)
+    • Actions/Views: action_tmsai_fb; view_tmsai_fb_search, view_tmsai_fb_tree, view_tmsai_fb_form
+    • Search: state, carrier_id, mode_id, windows
+    • Tree: name, carrier_id, mode_id, departure_window_from, arrival_window_to, fu_count, totals_cost, totals_revenue, state
+    • Form: General; Cargo (FU); Financials; Notes/Chatter
+    • Кнопки: Request Quote, Confirm, Start, Deliver, Close, Cancel; Smart: Tender, Settlement
+Tender (tmsai.tender) + Quotes
+    • Actions/Views: action_tmsai_tenders; view_tmsai_tender_tree, view_tmsai_tender_form
+    • Tree: name, fo_id/fb_id, deadline, state, awarded_carrier_id
+    • Form: invited_carrier_ids, awarding_rule, deadline; one2many quote_line_ids (carrier_id, price_linehaul, accessorial_total, fuel_percent, eta_hours, valid_until, selected); Smart: Open FO/FB
+    • Кнопки: Send, Collect Quotes, Award, Cancel
+Freight Settlement (tmsai.freight.settlement)
+    • Actions/Views: action_tmsai_fsd; view_tmsai_fsd_search, view_tmsai_fsd_tree, view_tmsai_fsd_form
+    • Search: state, carrier/customer, currency
+    • Tree: name, fo_id/fb_id, totals_cost, totals_revenue, margin, state
+    • Form: Links (fo_id/fb_id, currency); Cost Lines; Revenue Lines; Accounting (vendor_bill_id, customer_invoice_id, purchase_order_id); Notes/Chatter
+    • Кнопки: Approve, Create Vendor Bill, Create Customer Invoice, Mark Paid, Cancel
+Cost/Revenue Lines (inline)
+    • Дерева для one2many: product_id, quantity, price_unit, currency_id, taxes, amount_subtotal, amount_total, agreement_id, rate_id, accessorial_id, is_fuel_surcharge, calc_json(readonly)
+Tracking Event (tmsai.tracking.event)
+    • Actions/Views: action_tmsai_tracking; view_tmsai_tracking_search, view_tmsai_tracking_tree, view_tmsai_tracking_form, view_tmsai_tracking_calendar(опц.)
+    • Search: event_type, document_type, date range
+    • Tree: event_type, document_type, document_id(display), timestamp, gps_lat, gps_lng, source
+    • Form: + description, attachments
+Master Data (окремі дії/в’ю)
+    • Carrier: action_tmsai_carriers; view_tmsai_carrier_tree, view_tmsai_carrier_form (вкладки: Documents, Lanes, Notes/Chatter)
+    • Carrier Documents: action_tmsai_carrier_docs; view_tmsai_carrier_doc_tree, view_tmsai_carrier_doc_form
+    • Carrier Lanes: action_tmsai_carrier_lanes; view_tmsai_carrier_lane_tree, view_tmsai_carrier_lane_form
+    • Unit: action_tmsai_units; view_tmsai_unit_tree, view_tmsai_unit_form
+    • Resource: action_tmsai_resources; view_tmsai_resource_tree, view_tmsai_resource_form (вкладка Unit Lines)
+    • Geo Zones: action_tmsai_geo_zones; view_tmsai_geo_zone_tree, view_tmsai_geo_zone_form
+    • Lanes: action_tmsai_lanes; view_tmsai_lane_tree, view_tmsai_lane_form
+    • Service Levels: action_tmsai_service_levels; view_tmsai_service_level_tree, view_tmsai_service_level_form
+    • Agreements: action_tmsai_agreements; view_tmsai_agreement_tree, view_tmsai_agreement_form (вкладка Rate Lines)
+    • Rates: action_tmsai_rates; view_tmsai_rate_tree, view_tmsai_rate_form
+    • Accessorials: action_tmsai_accessorials; view_tmsai_accessorial_tree, view_tmsai_accessorial_form
+    • Fuel Index: action_tmsai_fuel_index; view_tmsai_fuel_index_tree, view_tmsai_fuel_index_form
+    • Fuel Policies: action_tmsai_fuel_policies; view_tmsai_fuel_policy_tree, view_tmsai_fuel_policy_form (+ band lines)
+B6) Видимість меню
+    • Operations: group_user, group_planner, group_billing, group_manager
+    • Configuration: group_masterdata_manager, group_manager (Settings — також base.group_system за потреби)
+Готово. Це об’єднаний, самодостатній документ:
+    • Чіткий список моделей і полів (частина A).
+    • Повні специфікації безпеки, меню і в’ю (частина B) з ідентифікаторами для реалізації у XML та ACL CSV.
