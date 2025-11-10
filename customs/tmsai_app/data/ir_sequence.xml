@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Sequences for TMS documents -->
+        <record id="seq_tmsai_tr" model="ir.sequence">
+            <field name="name">Transport Request</field>
+            <field name="code">tmsai.tr</field>
+            <field name="prefix">TR</field>
+            <field name="padding">5</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+        
+        <record id="seq_tmsai_fu" model="ir.sequence">
+            <field name="name">Freight Unit</field>
+            <field name="code">tmsai.fu</field>
+            <field name="prefix">FU</field>
+            <field name="padding">5</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+        
+        <record id="seq_tmsai_fo" model="ir.sequence">
+            <field name="name">Freight Order</field>
+            <field name="code">tmsai.fo</field>
+            <field name="prefix">FO</field>
+            <field name="padding">5</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+        
+        <record id="seq_tmsai_fb" model="ir.sequence">
+            <field name="name">Freight Booking</field>
+            <field name="code">tmsai.fb</field>
+            <field name="prefix">FB</field>
+            <field name="padding">5</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+        
+        <record id="seq_tmsai_fsd" model="ir.sequence">
+            <field name="name">Freight Settlement Document</field>
+            <field name="code">tmsai.fsd</field>
+            <field name="prefix">FSD</field>
+            <field name="padding">5</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+        
+        <record id="seq_tmsai_tender" model="ir.sequence">
+            <field name="name">Tender</field>
+            <field name="code">tmsai.tender</field>
+            <field name="prefix">TEND</field>
+            <field name="padding">5</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+    </data>
+</odoo>

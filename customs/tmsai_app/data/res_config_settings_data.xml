@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- System Parameters for TMS Configuration -->
+        <record id="param_tmsai_auto_create_tr" model="ir.config_parameter">
+            <field name="key">tmsai.auto_create_tr</field>
+            <field name="value">True</field>
+        </record>
+        
+        <record id="param_tmsai_distance_service" model="ir.config_parameter">
+            <field name="key">tmsai.distance_service</field>
+            <field name="value">osrm</field>
+        </record>
+    </data>
+</odoo>

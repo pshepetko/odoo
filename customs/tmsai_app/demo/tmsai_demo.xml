@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Demo Carrier -->
+        <record id="demo_carrier_fast_trans" model="tmsai.carrier">
+            <field name="name">Fast Transport Inc.</field>
+            <field name="code">FAST001</field>
+            <field name="partner_id" ref="base.res_partner_2"/>
+            <field name="carrier_type">subcontractor</field>
+            <field name="mode_ids" eval="[(6, 0, [ref('mode_road')])]"/>
+            <field name="service_level_ids" eval="[(6, 0, [ref('service_standard'), ref('service_express')])]"/>
+            <field name="rating">4.5</field>
+            <field name="active" eval="True"/>
+        </record>
+        
+        <!-- Demo Unit -->
+        <record id="demo_unit_20gp" model="tmsai.unit">
+            <field name="name">20ft GP Container</field>
+            <field name="code">20GP</field>
+            <field name="mode_id" ref="mode_sea"/>
+            <field name="category">container</field>
+            <field name="size_label">20ft</field>
+            <field name="tare_weight">2200</field>
+            <field name="capacity_weight">21700</field>
+            <field name="capacity_volume">33.0</field>
+            <field name="pallets">10</field>
+            <field name="length">6.058</field>
+            <field name="width">2.438</field>
+            <field name="height">2.591</field>
+            <field name="door_type">standard</field>
+            <field name="active" eval="True"/>
+        </record>
+        
+        <!-- Demo Resource -->
+        <record id="demo_resource_truck_001" model="tmsai.resource">
+            <field name="name">Truck Unit 001</field>
+            <field name="code">TRK001</field>
+            <field name="mode_id" ref="mode_road"/>
+            <field name="category">truck</field>
+            <field name="owner_type">company</field>
+            <field name="active" eval="True"/>
+        </record>
+        
+        <!-- Demo Resource Unit Line -->
+        <record id="demo_resource_unit_line_001" model="tmsai.resource.unit">
+            <field name="resource_id" ref="demo_resource_truck_001"/>
+            <field name="unit_id" ref="demo_unit_20gp"/>
+            <field name="quantity">1</field>
+            <field name="sequence">10</field>
+        </record>
+        
+        <!-- Demo Geo Zone -->
+        <record id="demo_zone_kyiv" model="tmsai.geo.zone">
+            <field name="name">Kyiv</field>
+            <field name="type">city</field>
+            <field name="country_id" ref="base.ua"/>
+            <field name="city">Kyiv</field>
+            <field name="lat">50.4501</field>
+            <field name="lng">30.5234</field>
+            <field name="active" eval="True"/>
+        </record>
+        
+        <!-- Demo Lane -->
+        <record id="demo_lane_kyiv_lviv" model="tmsai.lane">
+            <field name="name">Kyiv - Lviv</field>
+            <field name="from_zone_id" ref="demo_zone_kyiv"/>
+            <field name="to_zone_id" ref="demo_zone_kyiv"/>
+            <field name="mode_id" ref="mode_road"/>
+            <field name="default_unit_id" ref="demo_unit_20gp"/>
+            <field name="sla_lead_time_hours">12.0</field>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>

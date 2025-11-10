@@ -1,0 +1,122 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+# Transport Request
+tmsai_access_tr_user,TR user,model_tmsai_transport_request,tmsai.group_user,1,1,1,0
+tmsai_access_tr_planner,TR planner,model_tmsai_transport_request,tmsai.group_planner,1,1,1,1
+tmsai_access_tr_billing,TR billing RO,model_tmsai_transport_request,tmsai.group_billing,1,0,0,0
+tmsai_access_tr_manager,TR manager,model_tmsai_transport_request,tmsai.group_manager,1,1,1,1
+
+# Freight Unit
+tmsai_access_fu_user,FU user,model_tmsai_freight_unit,tmsai.group_user,1,1,1,0
+tmsai_access_fu_planner,FU planner,model_tmsai_freight_unit,tmsai.group_planner,1,1,1,1
+tmsai_access_fu_billing,FU billing RO,model_tmsai_freight_unit,tmsai.group_billing,1,0,0,0
+tmsai_access_fu_manager,FU manager,model_tmsai_freight_unit,tmsai.group_manager,1,1,1,1
+
+# Freight Order
+tmsai_access_fo_user,FO user RO,model_tmsai_freight_order,tmsai.group_user,1,0,0,0
+tmsai_access_fo_planner,FO planner,model_tmsai_freight_order,tmsai.group_planner,1,1,1,1
+tmsai_access_fo_billing,FO billing RO,model_tmsai_freight_order,tmsai.group_billing,1,0,0,0
+tmsai_access_fo_manager,FO manager,model_tmsai_freight_order,tmsai.group_manager,1,1,1,1
+
+# FO Resource / Unit
+tmsai_access_fo_resource_user,FO Resource user RO,model_tmsai_fo_resource,tmsai.group_user,1,0,0,0
+tmsai_access_fo_resource_planner,FO Resource planner,model_tmsai_fo_resource,tmsai.group_planner,1,1,1,1
+tmsai_access_fo_resource_manager,FO Resource manager,model_tmsai_fo_resource,tmsai.group_manager,1,1,1,1
+tmsai_access_fo_resource_unit_user,FO Resource Unit user RO,model_tmsai_fo_resource_unit,tmsai.group_user,1,0,0,0
+tmsai_access_fo_resource_unit_planner,FO Resource Unit planner,model_tmsai_fo_resource_unit,tmsai.group_planner,1,1,1,1
+tmsai_access_fo_resource_unit_manager,FO Resource Unit manager,model_tmsai_fo_resource_unit,tmsai.group_manager,1,1,1,1
+
+# Route Leg
+tmsai_access_route_leg_user,Route Leg user RO,model_tmsai_route_leg,tmsai.group_user,1,0,0,0
+tmsai_access_route_leg_planner,Route Leg planner,model_tmsai_route_leg,tmsai.group_planner,1,1,1,1
+tmsai_access_route_leg_manager,Route Leg manager,model_tmsai_route_leg,tmsai.group_manager,1,1,1,1
+
+# Freight Booking
+tmsai_access_fb_user,FB user RO,model_tmsai_freight_booking,tmsai.group_user,1,0,0,0
+tmsai_access_fb_planner,FB planner,model_tmsai_freight_booking,tmsai.group_planner,1,1,1,1
+tmsai_access_fb_billing,FB billing RO,model_tmsai_freight_booking,tmsai.group_billing,1,0,0,0
+tmsai_access_fb_manager,FB manager,model_tmsai_freight_booking,tmsai.group_manager,1,1,1,1
+
+# Tender / Quote
+tmsai_access_tender_user,Tender user RO,model_tmsai_tender,tmsai.group_user,1,0,0,0
+tmsai_access_tender_planner,Tender planner,model_tmsai_tender,tmsai.group_planner,1,1,1,1
+tmsai_access_tender_manager,Tender manager,model_tmsai_tender,tmsai.group_manager,1,1,1,1
+tmsai_access_tender_quote_user,Tender Quote user RO,model_tmsai_tender_quote,tmsai.group_user,1,0,0,0
+tmsai_access_tender_quote_planner,Tender Quote planner,model_tmsai_tender_quote,tmsai.group_planner,1,1,1,1
+tmsai_access_tender_quote_manager,Tender Quote manager,model_tmsai_tender_quote,tmsai.group_manager,1,1,1,1
+
+# Freight Settlement / Lines
+tmsai_access_fsd_user,FSD user RO,model_tmsai_freight_settlement,tmsai.group_user,1,0,0,0
+tmsai_access_fsd_billing,FSD billing,model_tmsai_freight_settlement,tmsai.group_billing,1,1,1,1
+tmsai_access_fsd_manager,FSD manager,model_tmsai_freight_settlement,tmsai.group_manager,1,1,1,1
+tmsai_access_cost_user,Cost line user RO,model_tmsai_cost_line,tmsai.group_user,1,0,0,0
+tmsai_access_cost_billing,Cost line billing,model_tmsai_cost_line,tmsai.group_billing,1,1,1,1
+tmsai_access_cost_manager,Cost line manager,model_tmsai_cost_line,tmsai.group_manager,1,1,1,1
+tmsai_access_revenue_user,Revenue line user RO,model_tmsai_revenue_line,tmsai.group_user,1,0,0,0
+tmsai_access_revenue_billing,Revenue line billing,model_tmsai_revenue_line,tmsai.group_billing,1,1,1,1
+tmsai_access_revenue_manager,Revenue line manager,model_tmsai_revenue_line,tmsai.group_manager,1,1,1,1
+
+# Tracking
+tmsai_access_tracking_user,Tracking user,model_tmsai_tracking_event,tmsai.group_user,1,1,1,0
+tmsai_access_tracking_planner,Tracking planner,model_tmsai_tracking_event,tmsai.group_planner,1,1,1,1
+tmsai_access_tracking_manager,Tracking manager,model_tmsai_tracking_event,tmsai.group_manager,1,1,1,1
+
+# Master Data: Carrier / Docs / Lanes
+tmsai_access_carrier_user,Carrier user RO,model_tmsai_carrier,tmsai.group_user,1,0,0,0
+tmsai_access_carrier_planner,Carrier planner RO,model_tmsai_carrier,tmsai.group_planner,1,0,0,0
+tmsai_access_carrier_billing,Carrier billing RO,model_tmsai_carrier,tmsai.group_billing,1,0,0,0
+tmsai_access_carrier_md,Carrier MD,model_tmsai_carrier,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_carrier_manager,Carrier manager,model_tmsai_carrier,tmsai.group_manager,1,1,1,1
+tmsai_access_carrier_doc_md,Carrier Doc MD,model_tmsai_carrier_document,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_carrier_doc_manager,Carrier Doc manager,model_tmsai_carrier_document,tmsai.group_manager,1,1,1,1
+tmsai_access_carrier_lane_md,Carrier Lane MD,model_tmsai_carrier_lane,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_carrier_lane_manager,Carrier Lane manager,model_tmsai_carrier_lane,tmsai.group_manager,1,1,1,1
+
+# Master Data: Unit / Resource / Resource Unit
+tmsai_access_unit_user,Unit user RO,model_tmsai_unit,tmsai.group_user,1,0,0,0
+tmsai_access_unit_md,Unit MD,model_tmsai_unit,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_unit_manager,Unit manager,model_tmsai_unit,tmsai.group_manager,1,1,1,1
+tmsai_access_resource_user,Resource user RO,model_tmsai_resource,tmsai.group_user,1,0,0,0
+tmsai_access_resource_planner,Resource planner RO,model_tmsai_resource,tmsai.group_planner,1,0,0,0
+tmsai_access_resource_md,Resource MD,model_tmsai_resource,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_resource_manager,Resource manager,model_tmsai_resource,tmsai.group_manager,1,1,1,1
+tmsai_access_resource_unit_md,Resource Unit MD,model_tmsai_resource_unit,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_resource_unit_manager,Resource Unit manager,model_tmsai_resource_unit,tmsai.group_manager,1,1,1,1
+
+# Master Data: Geo Zone / Lane / Service Level
+tmsai_access_geo_zone_user,Geo Zone user RO,model_tmsai_geo_zone,tmsai.group_user,1,0,0,0
+tmsai_access_geo_zone_md,Geo Zone MD,model_tmsai_geo_zone,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_geo_zone_manager,Geo Zone manager,model_tmsai_geo_zone,tmsai.group_manager,1,1,1,1
+tmsai_access_lane_user,Lane user RO,model_tmsai_lane,tmsai.group_user,1,0,0,0
+tmsai_access_lane_md,Lane MD,model_tmsai_lane,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_lane_manager,Lane manager,model_tmsai_lane,tmsai.group_manager,1,1,1,1
+tmsai_access_service_level_user,Service Level user RO,model_tmsai_service_level,tmsai.group_user,1,0,0,0
+tmsai_access_service_level_md,Service Level MD,model_tmsai_service_level,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_service_level_manager,Service Level manager,model_tmsai_service_level,tmsai.group_manager,1,1,1,1
+
+# Master Data: Agreements / Rates
+tmsai_access_agreement_user,Agreement user RO,model_tmsai_freight_agreement,tmsai.group_user,1,0,0,0
+tmsai_access_agreement_planner,Agreement planner RO,model_tmsai_freight_agreement,tmsai.group_planner,1,0,0,0
+tmsai_access_agreement_billing,Agreement billing RO,model_tmsai_freight_agreement,tmsai.group_billing,1,0,0,0
+tmsai_access_agreement_md,Agreement MD,model_tmsai_freight_agreement,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_agreement_manager,Agreement manager,model_tmsai_freight_agreement,tmsai.group_manager,1,1,1,1
+tmsai_access_rate_user,Rate user RO,model_tmsai_freight_rate,tmsai.group_user,1,0,0,0
+tmsai_access_rate_md,Rate MD,model_tmsai_freight_rate,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_rate_manager,Rate manager,model_tmsai_freight_rate,tmsai.group_manager,1,1,1,1
+
+# Master Data: Accessorial / Fuel
+tmsai_access_accessorial_user,Accessorial user RO,model_tmsai_accessorial,tmsai.group_user,1,0,0,0
+tmsai_access_accessorial_md,Accessorial MD,model_tmsai_accessorial,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_accessorial_manager,Accessorial manager,model_tmsai_accessorial,tmsai.group_manager,1,1,1,1
+tmsai_access_fuel_index_user,Fuel Index user RO,model_tmsai_fuel_index,tmsai.group_user,1,0,0,0
+tmsai_access_fuel_index_md,Fuel Index MD,model_tmsai_fuel_index,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_fuel_index_manager,Fuel Index manager,model_tmsai_fuel_index,tmsai.group_manager,1,1,1,1
+tmsai_access_fuel_policy_user,Fuel Policy user RO,model_tmsai_fuel_policy,tmsai.group_user,1,0,0,0
+tmsai_access_fuel_policy_md,Fuel Policy MD,model_tmsai_fuel_policy,tmsai.group_manager,1,1,1,1
+tmsai_access_fuel_policy_manager,Fuel Policy manager,model_tmsai_fuel_policy,tmsai.group_manager,1,1,1,1
+tmsai_access_fuel_policy_band_md,Fuel Policy Band MD,model_tmsai_fuel_policy_band,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_fuel_policy_band_manager,Fuel Policy Band manager,model_tmsai_fuel_policy_band,tmsai.group_manager,1,1,1,1
+
+# Mode
+tmsai_access_mode_user,Mode user RO,model_tmsai_mode,tmsai.group_user,1,0,0,0
+tmsai_access_mode_md,Mode MD,model_tmsai_mode,tmsai.group_masterdata_manager,1,1,1,1
+tmsai_access_mode_manager,Mode manager,model_tmsai_mode,tmsai.group_manager,1,1,1,1
