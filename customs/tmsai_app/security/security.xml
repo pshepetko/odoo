@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- TMS User Group -->
+        <record id="group_user" model="res.groups">
+            <field name="name">TMS User</field>
+            <field name="category_id" ref="base.module_category_transportation"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+        
+        <!-- TMS Planner Group -->
+        <record id="group_planner" model="res.groups">
+            <field name="name">TMS Planner</field>
+            <field name="category_id" ref="base.module_category_transportation"/>
+            <field name="implied_ids" eval="[(4, ref('group_user'))]"/>
+        </record>
+        
+        <!-- TMS Billing Group -->
+        <record id="group_billing" model="res.groups">
+            <field name="name">TMS Billing</field>
+            <field name="category_id" ref="base.module_category_transportation"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+        
+        <!-- TMS Master Data Manager Group -->
+        <record id="group_masterdata_manager" model="res.groups">
+            <field name="name">TMS Master Data Manager</field>
+            <field name="category_id" ref="base.module_category_transportation"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+        
+        <!-- TMS Manager Group -->
+        <record id="group_manager" model="res.groups">
+            <field name="name">TMS Manager</field>
+            <field name="category_id" ref="base.module_category_transportation"/>
+            <field name="implied_ids" eval="[(4, ref('group_planner')), (4, ref('group_billing')), (4, ref('group_masterdata_manager'))]"/>
+        </record>
+    </data>
+</odoo>

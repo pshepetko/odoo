@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Multi-company record rules for operational models -->
+        
+        <!-- Transport Request -->
+        <record id="ir_rule_tmsai_transport_request_company" model="ir.rule">
+            <field name="name">TMS Transport Request Multi-Company</field>
+            <field name="model_id" ref="model_tmsai_transport_request"/>
+            <field name="domain_force">['|', ('company_id','=',False), ('company_id','in', user.company_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('group_user')), (4, ref('group_planner')), (4, ref('group_billing'))]"/>
+        </record>
+        
+        <!-- Freight Unit -->
+        <record id="ir_rule_tmsai_freight_unit_company" model="ir.rule">
+            <field name="name">TMS Freight Unit Multi-Company</field>
+            <field name="model_id" ref="model_tmsai_freight_unit"/>
+            <field name="domain_force">['|', ('company_id','=',False), ('company_id','in', user.company_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('group_user')), (4, ref('group_planner')), (4, ref('group_billing'))]"/>
+        </record>
+        
+        <!-- Freight Order -->
+        <record id="ir_rule_tmsai_freight_order_company" model="ir.rule">
+            <field name="name">TMS Freight Order Multi-Company</field>
+            <field name="model_id" ref="model_tmsai_freight_order"/>
+            <field name="domain_force">['|', ('company_id','=',False), ('company_id','in', user.company_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('group_user')), (4, ref('group_planner')), (4, ref('group_billing'))]"/>
+        </record>
+        
+        <!-- Freight Booking -->
+        <record id="ir_rule_tmsai_freight_booking_company" model="ir.rule">
+            <field name="name">TMS Freight Booking Multi-Company</field>
+            <field name="model_id" ref="model_tmsai_freight_booking"/>
+            <field name="domain_force">['|', ('company_id','=',False), ('company_id','in', user.company_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('group_user')), (4, ref('group_planner')), (4, ref('group_billing'))]"/>
+        </record>
+        
+        <!-- Freight Settlement -->
+        <record id="ir_rule_tmsai_freight_settlement_company" model="ir.rule">
+            <field name="name">TMS Freight Settlement Multi-Company</field>
+            <field name="model_id" ref="model_tmsai_freight_settlement"/>
+            <field name="domain_force">['|', ('company_id','=',False), ('company_id','in', user.company_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('group_user')), (4, ref('group_billing'))]"/>
+        </record>
+        
+        <!-- Carrier -->
+        <record id="ir_rule_tmsai_carrier_company" model="ir.rule">
+            <field name="name">TMS Carrier Multi-Company</field>
+            <field name="model_id" ref="model_tmsai_carrier"/>
+            <field name="domain_force">['|', ('company_id','=',False), ('company_id','in', user.company_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('group_user')), (4, ref('group_planner')), (4, ref('group_billing')), (4, ref('group_masterdata_manager'))]"/>
+        </record>
+        
+        <!-- Freight Agreement -->
+        <record id="ir_rule_tmsai_freight_agreement_company" model="ir.rule">
+            <field name="name">TMS Freight Agreement Multi-Company</field>
+            <field name="model_id" ref="model_tmsai_freight_agreement"/>
+            <field name="domain_force">['|', ('company_id','=',False), ('company_id','in', user.company_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('group_user')), (4, ref('group_planner')), (4, ref('group_billing')), (4, ref('group_masterdata_manager'))]"/>
+        </record>
+        
+        <!-- Blacklisted carrier restriction -->
+        <record id="ir_rule_tmsai_carrier_blacklisted" model="ir.rule">
+            <field name="name">TMS Blacklisted Carrier Restriction</field>
+            <field name="model_id" ref="model_tmsai_carrier"/>
+            <field name="domain_force">[('blacklisted','=',False)]</field>
+            <field name="groups" eval="[(4, ref('group_user')), (4, ref('group_planner')), (4, ref('group_billing'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+        
+        <!-- Tender blacklisted carrier restriction -->
+        <record id="ir_rule_tmsai_tender_carrier_blacklisted" model="ir.rule">
+            <field name="name">TMS Tender Blacklisted Carrier Restriction</field>
+            <field name="model_id" ref="model_tmsai_tender"/>
+            <field name="domain_force">[('invited_carrier_ids.blacklisted','=',False)]</field>
+            <field name="groups" eval="[(4, ref('group_user')), (4, ref('group_planner'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+    </data>
+</odoo>

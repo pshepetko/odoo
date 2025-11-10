@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Main TMS Menu -->
+        <menuitem id="menu_tmsai_root" name="TMS" sequence="50" web_icon="tmsai_app,static/description/icon.png"/>
+        
+        <!-- Dashboard Menu -->
+        <menuitem id="menu_tmsai_dashboard" name="Dashboard" parent="menu_tmsai_root" sequence="10" 
+                  groups="tmsai.group_user,tmsai.group_planner,tmsai.group_billing,tmsai.group_manager"/>
+        
+        <!-- Operations Menu -->
+        <menuitem id="menu_tmsai_operations" name="Operations" parent="menu_tmsai_root" sequence="20"
+                  groups="tmsai.group_user,tmsai.group_planner,tmsai.group_billing,tmsai.group_manager"/>
+        
+        <!-- Transport Requests -->
+        <menuitem id="menu_tmsai_tr" name="Transport Requests" parent="menu_tmsai_operations" sequence="10"
+                  action="action_tmsai_tr"/>
+        
+        <!-- Freight Units -->
+        <menuitem id="menu_tmsai_fu" name="Freight Units" parent="menu_tmsai_operations" sequence="20"
+                  action="action_tmsai_fu"/>
+        
+        <!-- Freight Orders -->
+        <menuitem id="menu_tmsai_fo" name="Freight Orders" parent="menu_tmsai_operations" sequence="30"
+                  action="action_tmsai_fo"/>
+        
+        <!-- Freight Bookings -->
+        <menuitem id="menu_tmsai_fb" name="Freight Bookings" parent="menu_tmsai_operations" sequence="40"
+                  action="action_tmsai_fb"/>
+        
+        <!-- Tenders -->
+        <menuitem id="menu_tmsai_tenders" name="Tenders" parent="menu_tmsai_operations" sequence="50"
+                  action="action_tmsai_tenders"/>
+        
+        <!-- Settlement -->
+        <menuitem id="menu_tmsai_fsd" name="Settlement (FSD)" parent="menu_tmsai_operations" sequence="60"
+                  action="action_tmsai_fsd"/>
+        
+        <!-- Tracking -->
+        <menuitem id="menu_tmsai_tracking" name="Tracking Events" parent="menu_tmsai_operations" sequence="70"
+                  action="action_tmsai_tracking"/>
+        
+        <!-- Configuration Menu -->
+        <menuitem id="menu_tmsai_config" name="Configuration" parent="menu_tmsai_root" sequence="90"
+                  groups="tmsai.group_masterdata_manager,tmsai.group_manager"/>
+        
+        <!-- Master Data Submenu -->
+        <menuitem id="menu_tmsai_masterdata" name="Master Data" parent="menu_tmsai_config" sequence="10"/>
+        
+        <!-- Carriers -->
+        <menuitem id="menu_tmsai_carriers" name="Carriers" parent="menu_tmsai_masterdata" sequence="10"
+                  action="action_tmsai_carriers"/>
+        
+        <menuitem id="menu_tmsai_carrier_docs" name="Carrier Documents" parent="menu_tmsai_masterdata" sequence="20"
+                  action="action_tmsai_carrier_docs"/>
+        
+        <menuitem id="menu_tmsai_carrier_lanes" name="Carrier Lanes" parent="menu_tmsai_masterdata" sequence="30"
+                  action="action_tmsai_carrier_lanes"/>
+        
+        <!-- Units and Resources -->
+        <menuitem id="menu_tmsai_units" name="Units" parent="menu_tmsai_masterdata" sequence="40"
+                  action="action_tmsai_units"/>
+        
+        <menuitem id="menu_tmsai_resources" name="Resources" parent="menu_tmsai_masterdata" sequence="50"
+                  action="action_tmsai_resources"/>
+        
+        <!-- Network Data -->
+        <menuitem id="menu_tmsai_service_levels" name="Service Levels" parent="menu_tmsai_masterdata" sequence="60"
+                  action="action_tmsai_service_levels"/>
+        
+        <menuitem id="menu_tmsai_geo_zones" name="Geo Zones" parent="menu_tmsai_masterdata" sequence="70"
+                  action="action_tmsai_geo_zones"/>
+        
+        <menuitem id="menu_tmsai_lanes" name="Lanes" parent="menu_tmsai_masterdata" sequence="80"
+                  action="action_tmsai_lanes"/>
+        
+        <!-- Commercial Data -->
+        <menuitem id="menu_tmsai_agreements" name="Agreements" parent="menu_tmsai_masterdata" sequence="90"
+                  action="action_tmsai_agreements"/>
+        
+        <menuitem id="menu_tmsai_rates" name="Rates" parent="menu_tmsai_masterdata" sequence="100"
+                  action="action_tmsai_rates"/>
+        
+        <menuitem id="menu_tmsai_accessorials" name="Accessorials" parent="menu_tmsai_masterdata" sequence="110"
+                  action="action_tmsai_accessorials"/>
+        
+        <!-- Fuel Data -->
+        <menuitem id="menu_tmsai_fuel_index" name="Fuel Index" parent="menu_tmsai_masterdata" sequence="120"
+                  action="action_tmsai_fuel_index"/>
+        
+        <menuitem id="menu_tmsai_fuel_policies" name="Fuel Policies" parent="menu_tmsai_masterdata" sequence="130"
+                  action="action_tmsai_fuel_policies"/>
+        
+        <!-- Settings -->
+        <menuitem id="menu_tmsai_settings" name="Settings" parent="menu_tmsai_config" sequence="200"
+                  action="action_res_config_settings_tmsai"
+                  groups="base.group_system"/>
+    </data>
+</odoo>

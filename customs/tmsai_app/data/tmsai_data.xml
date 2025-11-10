@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Transport Modes -->
+        <record id="mode_road" model="tmsai.mode">
+            <field name="code">ROAD</field>
+            <field name="name">Road Transport</field>
+            <field name="active" eval="True"/>
+        </record>
+        
+        <record id="mode_rail" model="tmsai.mode">
+            <field name="code">RAIL</field>
+            <field name="name">Rail Transport</field>
+            <field name="active" eval="True"/>
+        </record>
+        
+        <record id="mode_sea" model="tmsai.mode">
+            <field name="code">SEA</field>
+            <field name="name">Sea Transport</field>
+            <field name="active" eval="True"/>
+        </record>
+        
+        <record id="mode_air" model="tmsai.mode">
+            <field name="code">AIR</field>
+            <field name="name">Air Transport</field>
+            <field name="active" eval="True"/>
+        </record>
+        
+        <record id="mode_intermodal" model="tmsai.mode">
+            <field name="code">INTERMODAL</field>
+            <field name="name">Intermodal Transport</field>
+            <field name="active" eval="True"/>
+        </record>
+        
+        <!-- Service Levels -->
+        <record id="service_standard" model="tmsai.service.level">
+            <field name="code">STD</field>
+            <field name="name">Standard</field>
+            <field name="kpi_ontime_pct">95.0</field>
+            <field name="kpi_lead_time_hours">48.0</field>
+            <field name="active" eval="True"/>
+        </record>
+        
+        <record id="service_express" model="tmsai.service.level">
+            <field name="code">EXP</field>
+            <field name="name">Express</field>
+            <field name="kpi_ontime_pct">98.0</field>
+            <field name="kpi_lead_time_hours">24.0</field>
+            <field name="active" eval="True"/>
+        </record>
+        
+        <record id="service_economy" model="tmsai.service.level">
+            <field name="code">ECO</field>
+            <field name="name">Economy</field>
+            <field name="kpi_ontime_pct">90.0</field>
+            <field name="kpi_lead_time_hours">72.0</field>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>
